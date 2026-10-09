@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Viewer</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background:#f2f2f7; padding:20px; }
+  .container { max-width:1400px; margin:0 auto; }
+  .header { display:flex; justify-content:space-between; align-items:center;
+            margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+  h1 { font-size:24px; }
+  .sub { font-size:13px; color:#8e8e93; margin-top:4px; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn { padding:10px 16px; background:#000; color:#fff; text-decoration:none;
+         border-radius:8px; font-size:14px; border:none; cursor:pointer; }
+  .btn.alt { background:#fff; color:#007aff; border:1px solid #007aff; }
+  .btn.green { background:#00a88a; }
+  .btn.small { padding:6px 12px; font-size:13px; }
+
+  .toolbar { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .toolbar input[type="search"] {
+    flex:1; min-width:200px; padding:10px 14px; border:1px solid #d1d1d6;
+    border-radius:8px; font-size:14px; }
+
+  .card { background:#fff; border-radius:14px; padding:0; overflow:hidden;
+          box-shadow:0 2px 8px rgba(0,0,0,.05); }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #eee;
+           white-space:nowrap; }
+  th { background:#f7f7f9; font-weight:600; font-size:12px;
+       text-transform:uppercase; letter-spacing:.03em; color:#6c6c70;
+       cursor:pointer; user-select:none; position:sticky; top:0; }
+  th:hover { background:#eeeef2; }
+  th .arrow { color:#00c9a7; margin-left:4px; }
+  tbody tr:hover { background:#fafafa; }
+  tbody tr.expandable { cursor:pointer; }
+
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px;
+           font-size:11px; font-weight:600; }
+  .badge.ok { background:#e6fff5; color:#00a88a; }
+  .badge.no { background:#ffecec; color:#d64545; }
+  .badge.skip { background:#f0f0f2; color:#8e8e93; }
+  .badge.none { background:#f0f0f2; color:#8e8e93; }
+
+  .detail-row td { background:#fafafa; padding:0; }
+  .detail-inner { padding:16px; font-size:13px; }
+  .detail-inner table { font-size:12px; }
+  .detail-inner th { background:#fff; }
+
+  .empty { text-align:center; padding:60px 20px; color:#8e8e93; }
+  .empty a { color:#007aff; text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>📊 Data Viewer</h1>
+      <div class="sub">{{ total_participants }} participant{{ '' if total_participants == 1 else 's' }} recorded</div>
+    </div>
+    <div class="actions">
+      <a href="/export/excel" class="btn green">📗 Excel (.xlsx)</a>
+      <a href="/export" class="btn">📄 Long CSV</a>
+      <a href="/export/wide" class="btn">📊 Wide CSV</a>
+      <a href="/" class="btn alt">+ New Participant</a>
+    </div>
+  </div>
+
+  {% if rows %}
+  <div class="toolbar">
+    <input type="search" id="searchBox" placeholder="Search participant ID, device, vision group…">
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th data-key="participant_id">Participant ID <span class="arrow"></span></th>
+            <th data-key="age">Age <span class="arrow"></span></th>
+            <th data-key="device">Device <span class="arrow"></span></th>
+            <th data-key="vision_group">Vision Group <span class="arrow"></span></th>
+            <th data-key="created_at">Date <span class="arrow"></span></th>
+            <th data-key="tasks_done">Tasks <span class="arrow"></span></th>
+            <th data-key="skipped">Skipped <span class="arrow"></span></th>
+            <th data-key="score">Score <span class="arrow"></span></th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr class="expandable" data-id="{{ row.id }}">
+            <td><strong>{{ row.participant_id }}</strong></td>
+            <td>{{ row.age }}</td>
+            <td>{{ row.device }}</td>
+            <td>{{ row.vision_group }}</td>
+            <td>{{ row.created_at }}</td>
+            <td>{{ row.tasks_done }}/18</td>
+            <td>{% if row.skipped %}<span class="badge skip">{{ row.skipped }}</span>{% else %}—{% endif %}</td>
+            <td>
+              {% if row.scored_total > 0 %}
+                <span class="badge ok">{{ row.score }}/{{ row.scored_total }}</span>
+              {% else %}
+                <span class="badge none">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="/data/participant/{{ row.id }}" class="btn small alt">View</a>
+            </td>
+          </tr>
+          <tr class="detail-row" style="display:none;" data-parent="{{ row.id }}">
+            <td colspan="9">
+              <div class="detail-inner">
+                <table>
+                  <thead>
+                    <tr><th>#</th><th>Task</th><th>Response</th><th>Result</th></tr>
+                  </thead>
+                  <tbody>
+                    {% for t in tasks %}
+                      {% set cell = row.tasks[t.n] %}
+                      <tr>
+                        <td>{{ t.n }}</td>
+                        <td>{{ t.name }}</td>
+                        <td>{{ cell.response or '—' }}</td>
+                        <td>
+                          {% if cell.skipped %}<span class="badge skip">Skipped</span>
+                          {% elif cell.correct is none %}<span class="badge none">—</span>
+                          {% elif cell.correct %}<span class="badge ok">Correct</span>
+                          {% else %}<span class="badge no">Incorrect</span>{% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty">
+      <p style="font-size:40px; margin-bottom:10px;">📭</p>
+      <p>No data yet.</p>
+      <p style="margin-top:12px;"><a href="/">Run the first assessment →</a></p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+// Search filter
+const searchBox = document.getElementById('searchBox');
+if (searchBox) {
+  searchBox.addEventListener('input', () => {
+    const q = searchBox.value.toLowerCase();
+    document.querySelectorAll('#dataTable tbody tr.expandable').forEach(tr => {
+      const match = tr.textContent.toLowerCase().includes(q);
+      tr.style.display = match ? '' : 'none';
+      const detail = document.querySelector(`tr[data-parent="${tr.dataset.id}"]`);
+      if (detail) detail.style.display = 'none';
+    });
+  });
+}
+
+// Sorting
+document.querySelectorAll('#dataTable th[data-key]').forEach(th => {
+  let asc = true;
+  th.addEventListener('click', () => {
+    const tbody = document.querySelector('#dataTable tbody');
+    const rows = [...tbody.querySelectorAll('tr.expandable')];
+    const idx = [...th.parentNode.children].indexOf(th);
+    rows.sort((a, b) => {
+      const av = a.children[idx].textContent.trim();
+      const bv = b.children[idx].textContent.trim();
+      const an = parseFloat(av), bn = parseFloat(bv);
+      const cmp = !isNaN(an) && !isNaN(bn) ? an - bn : av.localeCompare(bv);
+      return asc ? cmp : -cmp;
+    });
+    rows.forEach(r => {
+      const detail = document.querySelector(`tr[data-parent="${r.dataset.id}"]`);
+      tbody.appendChild(r);
+      if (detail) tbody.appendChild(detail);
+    });
+    document.querySelectorAll('#dataTable th .arrow').forEach(a => a.textContent = '');
+    th.querySelector('.arrow').textContent = asc ? '▲' : '▼';
+    asc = !asc;
+  });
+});
+
+// Row expand
+document.querySelectorAll('tr.expandable').forEach(tr => {
+  tr.addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    const detail = document.querySelector(`tr[data-parent="${tr.dataset.id}"]`);
+    if (detail) detail.style.display = detail.style.display === 'none' ? '' : 'none';
+  });
+});
+</script>
+</body>
+</html>

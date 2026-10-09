@@ -33,9 +33,11 @@
   .btn-primary:active { opacity:.8; }
   .btn-secondary { display:block; width:100%; padding:16px; background:#fff; color:#007aff;
                    font-size:16px; font-weight:500; border:1px solid #007aff;
-                   border-radius:10px; cursor:pointer; margin-bottom:24px;
+                   border-radius:10px; cursor:pointer; margin-bottom:12px;
                    text-align:center; text-decoration:none; }
   .btn-secondary:active { background:#f0f8ff; }
+  .btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .btn-grid .btn-secondary { margin-bottom:0; }
   .warning-box { background:#fff9e6; border-radius:10px; padding:16px; font-size:14px;
                  line-height:1.4; color:#1c1c1e; }
   .flash { padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px; }
@@ -88,7 +90,11 @@
       <button type="submit" class="btn-primary">Start {{ total_tasks }}-Task Assessment</button>
     </form>
 
-    <a href="/export" class="btn-secondary">Export Data (CSV)</a>
+    <div class="btn-grid">
+      <a href="/data" class="btn-secondary">📊 View Data</a>
+      <a href="/export/excel" class="btn-secondary">📗 Excel</a>
+    </div>
+    <a href="/export" class="btn-secondary">📄 Export CSV (All)</a>
 
     <div class="warning-box">
       This prototype is for research development only. Its tasks, thresholds and scores
