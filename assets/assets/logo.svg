@@ -1,38 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
   <defs>
-    <!-- Shine sweep gradient -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00c9a7" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#00c9a7" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.9"/>
-      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-      <animate attributeName="x1" values="-100%;100%" dur="2.5s" repeatCount="indefinite"/>
-      <animate attributeName="x2" values="0%;200%" dur="2.5s" repeatCount="indefinite"/>
+      <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1"/>
     </linearGradient>
-
-    <!-- Glow pulse filter -->
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
   </defs>
 
-  <!-- Background circle -->
-  <circle cx="80" cy="80" r="72" fill="#0a0a0a"/>
+  <!-- Outer glow -->
+  <circle cx="80" cy="80" r="80" fill="url(#glow)"/>
 
-  <!-- Eye shape (low vision symbol) -->
-  <path d="M30 80 Q80 30 130 80 Q80 130 30 80 Z"
-        fill="none" stroke="#00c9a7" stroke-width="5" filter="url(#glow)"/>
+  <!-- Dark disc -->
+  <circle cx="80" cy="80" r="68" fill="#0a0a0a"/>
+
+  <!-- Shine overlay -->
+  <circle cx="80" cy="80" r="68" fill="url(#shine)"/>
+
+  <!-- Eye outline -->
+  <path d="M32 80 Q80 34 128 80 Q80 126 32 80 Z"
+        fill="none" stroke="#00c9a7" stroke-width="5"
+        stroke-linejoin="round" stroke-linecap="round"/>
 
   <!-- Pupil -->
-  <circle cx="80" cy="80" r="14" fill="#00c9a7" filter="url(#glow)">
-    <animate attributeName="r" values="14;16;14" dur="2s" repeatCount="indefinite"/>
-  </circle>
-
-  <!-- Shine overlay clipped to circle -->
-  <circle cx="80" cy="80" r="72" fill="url(#shine)" clip-path="circle(72px at 80px 80px)"/>
+  <circle cx="80" cy="80" r="13" fill="#00c9a7"/>
+  <circle cx="80" cy="80" r="5"  fill="#0a0a0a"/>
 </svg>
