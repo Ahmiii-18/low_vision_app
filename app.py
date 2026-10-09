@@ -6,12 +6,15 @@ from flask import Flask, render_template, request, Response, redirect, url_for, 
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here' # Needed for flash messages
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db').replace("postgres://", "postgresql://", 1)
+app.config['SECRET_KEY'] = 'your-secret-key-here'
+
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
 # Database Model
 class Participant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
