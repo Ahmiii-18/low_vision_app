@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task {{ task_num }} of {{ total }}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background:#f2f2f7; display:flex; justify-content:center; padding:20px; min-height:100vh; }
+  .card { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:520px;
+          box-shadow:0 4px 6px rgba(0,0,0,.05); }
+  .meta { display:flex; justify-content:space-between; font-size:13px; color:#8e8e93;
+          margin-bottom:12px; }
+  .progress-bar { height:8px; background:#e5e5ea; border-radius:4px;
+                  overflow:hidden; margin-bottom:24px; }
+  .progress-fill { height:100%; background:#00c9a7; transition:width .3s; }
+  h1 { font-size:20px; margin-bottom:6px; }
+  .task-name { color:#8e8e93; font-size:14px; margin-bottom:20px; }
+  .prompt { font-size:22px; font-weight:600; margin:24px 0; line-height:1.4; }
+  input[type="text"], input[type="number"] {
+    width:100%; padding:14px 16px; font-size:17px; border:1px solid #d1d1d6;
+    border-radius:10px; margin-bottom:20px;
+  }
+  .options { display:grid; gap:10px; margin-bottom:20px; }
+  .options label { display:block; padding:16px; border:1px solid #d1d1d6; border-radius:10px;
+                   cursor:pointer; text-align:center; font-size:17px; transition:.15s; }
+  .options input { display:none; }
+  .options label:has(input:checked) { border-color:#00c9a7; background:#f0fffc;
+                                       color:#00a88a; font-weight:600; }
+  .btn { width:100%; padding:16px; background:#000; color:#fff; border:none;
+         border-radius:10px; font-size:17px; font-weight:500; cursor:pointer; }
+  .btn:active { opacity:.8; }
+  .quit { display:block; text-align:center; margin-top:16px; font-size:13px;
+          color:#8e8e93; text-decoration:none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="meta">
+      <span>Participant {{ participant.participant_id }}</span>
+      <span>Task {{ task_num }} / {{ total }}</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:{{ progress }}%"></div>
+    </div>
+
+    <h1>{{ task.name }}</h1>
+    <div class="task-name">Task {{ task.n }} of {{ total }}</div>
+
+    <div class="prompt">{{ task.prompt }}</div>
+
+    <form method="POST" id="taskForm">
+      <input type="hidden" name="duration_ms" id="duration_ms" value="">
+
+      {% if task.type == 'choice' %}
+        <div class="options">
+          {% for opt in task.options %}
+            <label>
+              <input type="radio" name="response" value="{{ opt }}" required>
+              {{ opt }}
+            </label>
+          {% endfor %}
+        </div>
+
+      {% elif task.type == 'number' %}
+        <input type="number" name="response" min="0" max="10" required autofocus>
+
+      {% else %}
+        <input type="text" name="response" placeholder="Type your response..." required autofocus>
+      {% endif %}
+
+      <button type="submit" class="btn">
+        {% if task_num == total %}Finish Assessment{% else %}Next Task →{% endif %}
+      </button>
+    </form>
+
+    <a href="/" class="quit">Quit assessment</a>
+  </div>
+
+  <script>
+    const start = Date.now();
+    document.getElementById('taskForm').addEventListener('submit', () => {
+      document.getElementById('duration_ms').value = Date.now() - start;
+    });
+  </script>
+</body>
+</html>

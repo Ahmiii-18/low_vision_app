@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
   <defs>
     <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#00c9a7" stop-opacity="0.35"/>
+      <stop offset="0%"  stop-color="#00c9a7" stop-opacity="0.35"/>
       <stop offset="100%" stop-color="#00c9a7" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -10,22 +10,12 @@
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1"/>
     </linearGradient>
   </defs>
-
-  <!-- Outer glow -->
   <circle cx="80" cy="80" r="80" fill="url(#glow)"/>
-
-  <!-- Dark disc -->
   <circle cx="80" cy="80" r="68" fill="#0a0a0a"/>
-
-  <!-- Shine overlay -->
   <circle cx="80" cy="80" r="68" fill="url(#shine)"/>
-
-  <!-- Eye outline -->
   <path d="M32 80 Q80 34 128 80 Q80 126 32 80 Z"
         fill="none" stroke="#00c9a7" stroke-width="5"
         stroke-linejoin="round" stroke-linecap="round"/>
-
-  <!-- Pupil -->
   <circle cx="80" cy="80" r="13" fill="#00c9a7"/>
   <circle cx="80" cy="80" r="5"  fill="#0a0a0a"/>
 </svg>
