@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assessment Complete</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background:#f2f2f7; padding:20px; display:flex; justify-content:center; }
+  .card { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:720px; }
+  h1 { font-size:22px; margin-bottom:6px; }
+  .sub { color:#8e8e93; margin-bottom:20px; font-size:14px; }
+  .score { background:#f0fffc; border:1px solid #00c9a7; border-radius:10px;
+           padding:16px; margin-bottom:20px; font-size:15px; color:#007a63; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:24px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e5ea; vertical-align:top; }
+  th { background:#f2f2f7; font-weight:600; font-size:12px; text-transform:uppercase; color:#6c6c70; }
+  .ok { color:#00a88a; font-weight:600; } .no { color:#d64545; font-weight:600; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn { padding:14px 20px; background:#000; color:#fff; text-decoration:none;
+         border-radius:10px; font-size:15px; }
+  .btn.alt { background:#fff; color:#007aff; border:1px solid #007aff; }
+  .btn.green { background:#00a88a; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✅ Assessment Complete</h1>
+  <p class="sub">Participant {{ participant.participant_id }} · {{ responses|length }} tasks recorded</p>
+
+  {% if scored_total > 0 %}
+  <div class="score"><strong>Score:</strong> {{ score }} / {{ scored_total }} scored correctly</div>
+  {% endif %}
+
+  <table>
+    <thead><tr><th>#</th><th>Task</th><th>Response</th><th>Result</th><th>Time</th></tr></thead>
+    <tbody>
+    {% for r in responses %}
+      <tr>
+        <td>{{ r.task_number }}</td>
+        <td>{{ r.task_name }}</td>
+        <td>{{ r.response or "—" }}</td>
+        <td>{% if r.correct is none %}—{% elif r.correct %}<span class="ok">Correct</span>{% else %}<span class="no">Incorrect</span>{% endif %}</td>
+        <td>{% if r.duration_ms %}{{ (r.duration_ms/1000)|round(1) }}s{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <a href="/export/participant/{{ participant.id }}" class="btn green">📥 Export This Participant (CSV)</a>
+    <a href="/export" class="btn">📥 Export All Participants (CSV)</a>
+    <a href="/export/wide" class="btn alt">📊 Wide Format CSV</a>
+    <a href="/" class="btn alt">New Participant</a>
+  </div>
+</div>
+</body>
+</html>

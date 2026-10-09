@@ -1,62 +1,78 @@
-"""
-Task definitions for the Low Vision Functional Assessment.
-
-Each task is a dict with:
-    n         : task number (1-18)
-    name      : display name (short)
-    prompt    : the instruction shown to the participant
-    type      : "choice" | "text" | "number"
-    options   : required only for type == "choice"
-    correct   : optional. If set, the response is scored right/wrong.
-
-Replace these placeholders with your approved protocol tasks.
-"""
-
 TASKS = [
-    {"n": 1,  "name": "Distance Acuity", "prompt": "Read the letter on screen.", "type": "choice",
-     "options": ["E", "F", "P", "T", "Z", "L"], "correct": "E"},
+  {"n": 1, "name": "Distance Visual Acuity", "type": "snellen",
+   "prompt": "Tap the direction the letter E is pointing.",
+   "config": {"rounds": 6, "sizes": [220, 160, 110, 75, 50, 34]}},
 
-    {"n": 2,  "name": "Near Acuity", "prompt": "Type the smallest word you can read.", "type": "text"},
+  {"n": 2, "name": "Contrast Sensitivity", "type": "contrast",
+   "prompt": "Is the letter visible? Tap YES or NO.",
+   "config": {"letter": "H", "levels": [0.9, 0.7, 0.5, 0.35, 0.25, 0.15, 0.10, 0.06]}},
 
-    {"n": 3,  "name": "Contrast Sensitivity", "prompt": "Is the letter visible?", "type": "choice",
-     "options": ["Yes", "No"], "correct": "Yes"},
+  {"n": 3, "name": "Color Vision (Ishihara)", "type": "ishihara",
+   "prompt": "What number do you see in the circle?",
+   "config": {"number": "74"}},
 
-    {"n": 4,  "name": "Reading Speed", "prompt": "Type the sentence you just read.", "type": "text"},
+  {"n": 4, "name": "Amsler Grid", "type": "amsler",
+   "prompt": "Stare at the center dot. Tap any areas where the lines look wavy, broken, or missing.",
+   "config": {}},
 
-    {"n": 5,  "name": "Central Field", "prompt": "Did you see a dot in the center?", "type": "choice",
-     "options": ["Yes", "No"]},
+  {"n": 5, "name": "Visual Field", "type": "visual_field",
+   "prompt": "Keep your eyes on the center cross. Tap where the light appears.",
+   "config": {"rounds": 8}},
 
-    {"n": 6,  "name": "Peripheral Field", "prompt": "Which side did the light appear on?", "type": "choice",
-     "options": ["Left", "Right", "Top", "Bottom"]},
+  {"n": 6, "name": "Motion Detection", "type": "motion",
+   "prompt": "Watch the dot. Which direction did it move?",
+   "config": {"rounds": 5}},
 
-    {"n": 7,  "name": "Color Vision", "prompt": "What number do you see?", "type": "text"},
+  {"n": 7, "name": "Reading Speed", "type": "reading",
+   "prompt": "Read the sentence aloud, then type it exactly.",
+   "config": {"text": "The quick brown fox jumps over the lazy dog."}},
 
-    {"n": 8,  "name": "Glare Sensitivity", "prompt": "Rate discomfort from light (0-10).", "type": "number"},
+  {"n": 8, "name": "Glare Sensitivity", "type": "glare",
+   "prompt": "Look at the light. Rate your discomfort (0 = none, 10 = unbearable).",
+   "config": {}},
 
-    {"n": 9,  "name": "Face Recognition", "prompt": "Identify the emotion shown.", "type": "choice",
-     "options": ["Happy", "Sad", "Angry", "Neutral", "Surprised"]},
+  {"n": 9, "name": "Face Recognition", "type": "face",
+   "prompt": "What emotion does this face show?",
+   "config": {"emotion": "happy",
+              "options": ["Happy", "Sad", "Angry", "Surprised", "Neutral"]}},
 
-    {"n": 10, "name": "Object Recognition", "prompt": "Name the object shown.", "type": "text"},
+  {"n": 10, "name": "Object Recognition", "type": "object",
+   "prompt": "What object is shown?",
+   "config": {"shape": "house",
+              "options": ["House", "Tree", "Car", "Boat", "Star"]}},
 
-    {"n": 11, "name": "Motion Detection", "prompt": "Which direction did the shape move?", "type": "choice",
-     "options": ["Left", "Right", "Up", "Down"]},
+  {"n": 11, "name": "Depth Perception", "type": "depth",
+   "prompt": "Which circle appears closer to you?",
+   "config": {"options": ["Left", "Right"]}},
 
-    {"n": 12, "name": "Depth Perception", "prompt": "Which object is closer?", "type": "choice",
-     "options": ["Left", "Right"]},
+  {"n": 12, "name": "Text Tracking", "type": "tracking",
+   "prompt": "Watch the highlighted word. Type it when it stops.",
+   "config": {}},
 
-    {"n": 13, "name": "Text Tracking", "prompt": "Type the word that was highlighted.", "type": "text"},
+  {"n": 13, "name": "Sign Reading", "type": "sign",
+   "prompt": "Read the sign aloud, then type the text you see.",
+   "config": {"text": "STOP"}},
 
-    {"n": 14, "name": "Sign Reading", "prompt": "Type the text on the sign.", "type": "text"},
+  {"n": 14, "name": "Medication Label", "type": "label",
+   "prompt": "What dosage is on the label?",
+   "config": {"text": "500 mg"}},
 
-    {"n": 15, "name": "Label Reading", "prompt": "What is the dosage on the label?", "type": "text"},
+  {"n": 15, "name": "Obstacle Detection", "type": "obstacle",
+   "prompt": "Is there an obstacle in the path?",
+   "config": {"has_obstacle": True,
+              "options": ["Yes", "No"]}},
 
-    {"n": 16, "name": "Obstacle Detection", "prompt": "Is there an obstacle in the path?", "type": "choice",
-     "options": ["Yes", "No"]},
+  {"n": 16, "name": "Scene Recognition", "type": "scene",
+   "prompt": "Describe what you see in one sentence.",
+   "config": {}},
 
-    {"n": 17, "name": "Scene Description", "prompt": "Describe the scene in one sentence.", "type": "text"},
+  {"n": 17, "name": "Peripheral Awareness", "type": "peripheral",
+   "prompt": "Keep looking at the center dot. Which side did the shape appear on?",
+   "config": {"rounds": 6}},
 
-    {"n": 18, "name": "Daily Task Simulation", "prompt": "Did you complete the task successfully?", "type": "choice",
-     "options": ["Yes", "No"]},
+  {"n": 18, "name": "Daily Task Simulation", "type": "daily",
+   "prompt": "Find and tap the bottle labeled 'Aspirin 100 mg'.",
+   "config": {}},
 ]
 
 TOTAL_TASKS = len(TASKS)
