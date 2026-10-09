@@ -10,23 +10,22 @@
   body { background:#f2f2f7; display:flex; justify-content:center; padding:16px; min-height:100vh; }
   .card { background:#fff; border-radius:16px; padding:20px; width:100%; max-width:640px;
           box-shadow:0 4px 6px rgba(0,0,0,.05); display:flex; flex-direction:column; }
-  .meta { display:flex; justify-content:space-between; font-size:13px; color:#8e8e93; margin-bottom:10px; }
-  .progress-bar { height:8px; background:#e5e5ea; border-radius:4px; overflow:hidden; margin-bottom:16px; }
+  .meta { display:flex; justify-content:space-between; font-size:13px;
+          color:#8e8e93; margin-bottom:10px; }
+  .progress-bar { height:8px; background:#e5e5ea; border-radius:4px;
+                  overflow:hidden; margin-bottom:16px; }
   .progress-fill { height:100%; background:#00c9a7; transition:width .3s; }
   h1 { font-size:18px; margin-bottom:4px; }
   .prompt { font-size:16px; color:#3a3a3c; margin:8px 0 16px; line-height:1.4; }
 
-  /* Stage = visual stimulus area */
   #stage { position:relative; min-height:320px; background:#fafafa; border-radius:12px;
            display:flex; align-items:center; justify-content:center; overflow:hidden;
            margin-bottom:16px; user-select:none; touch-action:manipulation; }
   #stage.dark { background:#000; }
-  #stage canvas { display:block; }
 
-  /* Controls area */
   #controls { display:flex; flex-direction:column; gap:10px; }
   .options { display:grid; gap:8px; }
-  .options.two { grid-template-columns:1fr 1fr; }
+  .options.two   { grid-template-columns:1fr 1fr; }
   .options.three { grid-template-columns:1fr 1fr 1fr; }
   .options label { padding:14px; border:1px solid #d1d1d6; border-radius:10px;
                    text-align:center; cursor:pointer; font-size:16px; transition:.15s; }
@@ -34,8 +33,7 @@
                                        color:#00a88a; font-weight:600; }
   .options input { display:none; }
   input[type="text"], input[type="number"] {
-    width:100%; padding:14px; font-size:17px; border:1px solid #d1d1d6;
-    border-radius:10px; }
+    width:100%; padding:14px; font-size:17px; border:1px solid #d1d1d6; border-radius:10px; }
   .btn { width:100%; padding:16px; background:#000; color:#fff; border:none;
          border-radius:10px; font-size:16px; font-weight:600; cursor:pointer; }
   .btn:active { opacity:.85; }
@@ -43,8 +41,7 @@
   .quit { display:block; text-align:center; margin-top:12px; font-size:13px;
           color:#8e8e93; text-decoration:none; }
 
-  /* Task-specific visuals */
-  .snellen-e { font-family: "Courier New", monospace; font-weight:900; line-height:1;
+  .snellen-e { font-family:"Courier New", monospace; font-weight:900; line-height:1;
                color:#000; transition:transform .2s; }
   .arrow-grid { display:grid; grid-template-columns:repeat(3, 1fr);
                 grid-template-rows:repeat(3, 1fr); gap:8px; width:220px; height:220px; }
@@ -53,7 +50,7 @@
   .arrow-grid button:hover { background:#f0fffc; border-color:#00c9a7; }
   .arrow-grid .center { border:none; background:transparent; cursor:default; }
 
-  .contrast-letter { font-family: Georgia, serif; font-weight:700; line-height:1; }
+  .contrast-letter { font-family:Georgia, serif; font-weight:700; line-height:1; }
 
   .amsler-grid { display:grid; width:280px; height:280px; border:1px solid #000; }
   .amsler-cell { border:0.5px solid #999; cursor:pointer; }
@@ -62,8 +59,8 @@
                    border-radius:50%; pointer-events:none; }
 
   .glare-light { width:220px; height:220px; border-radius:50%;
-                 background: radial-gradient(circle, #fff 0%, #fff 30%, #ffd 60%, #fa0 100%);
-                 box-shadow: 0 0 120px 60px rgba(255,255,200,.9); }
+                 background:radial-gradient(circle, #fff 0%, #fff 30%, #ffd 60%, #fa0 100%);
+                 box-shadow:0 0 120px 60px rgba(255,255,200,.9); }
 
   .depth-visual { position:relative; width:280px; height:220px; }
   .depth-circle { position:absolute; width:100px; height:100px; border-radius:50%;
@@ -93,7 +90,9 @@
     <span>Participant {{ participant.participant_id }}</span>
     <span>Task {{ task_num }} / {{ total }}</span>
   </div>
-  <div class="progress-bar"><div class="progress-fill" style="width:{{ progress }}%"></div></div>
+  <div class="progress-bar">
+    <div class="progress-fill" style="width:{{ progress }}%"></div>
+  </div>
 
   <h1>{{ task.name }}</h1>
   <div class="prompt">{{ task.prompt }}</div>
@@ -105,62 +104,87 @@
 </div>
 
 <script>
-const TASK = {{ task | tojson }};
-const PID  = {{ participant.id }};
+const TASK     = {{ task | tojson }};
+const PID      = {{ participant.id }};
 const TASK_NUM = {{ task_num }};
-const TOTAL = {{ total }};
+const TOTAL    = {{ total }};
 let START = Date.now();
 let submitAllowed = true;
 
-// ---------- shared submit ----------
-function submitTask(response, data) {
-  if (!submitAllowed) return;
-  submitAllowed = false;
-  const duration = Date.now() - START;
-  fetch('/api/submit_task', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      participant_id: PID,
-      task_number: TASK_NUM,
-      response: response,
-      data: data || {},
-      duration_ms: duration
-    })
-  }).then(r => r.json()).then(d => {
-    if (d.next) window.location.href = d.next;
-  }).catch(() => { submitAllowed = true; alert('Submit failed. Check connection.'); });
-}
-
-// helper
-const stage = document.getElementById('stage');
+/* ---------- shared helpers ---------- */
+const stage    = document.getElementById('stage');
 const controls = document.getElementById('controls');
-function el(html) { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
-function clearStage(){ stage.innerHTML=''; }
-function clearControls(){ controls.innerHTML=''; }
+
+function el(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html.trim();
+  return d.firstChild;
+}
+function clearStage()   { stage.innerHTML = ''; }
+function clearControls(){ controls.innerHTML = ''; }
 function setStageClass(c){ stage.className = c || ''; }
 
-// ================================================================
-// TASK RENDERERS
-// ================================================================
+/* ---------- submit ---------- */
+function submitTask(response, data, opts) {
+  if (!submitAllowed) return;
+  submitAllowed = false;
 
+  const payload = {
+    participant_id: PID,
+    task_number: TASK_NUM,
+    response: response,
+    data: data || {},
+    duration_ms: Date.now() - START,
+    skipped: !!(opts && opts.skipped)
+  };
+
+  fetch('/api/submit_task', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(async r => {
+    const txt = await r.text();
+    if (!r.ok) throw new Error(`HTTP ${r.status} — ${txt.slice(0, 300)}`);
+    try { return JSON.parse(txt); }
+    catch { throw new Error('Bad JSON from server: ' + txt.slice(0, 300)); }
+  })
+  .then(d => {
+    if (d.ok && d.next) window.location.href = d.next;
+    else throw new Error(d.error || 'unknown error');
+  })
+  .catch(err => {
+    console.error('[submit_task]', err);
+    submitAllowed = true;
+    alert('Submit failed:\n\n' + err.message);
+  });
+}
+
+function skipTask() {
+  if (!confirm('Skip this task? It will be recorded as "Skipped".')) return;
+  submitTask('SKIPPED', { skipped: true }, { skipped: true });
+}
+
+/* ================================================================
+   TASK RENDERERS
+   ================================================================ */
 const RENDERERS = {
 
-  // ---- 1. Snellen Acuity: rotating E ----
+  /* 1. Snellen Acuity */
   snellen() {
     const cfg = TASK.config;
     let round = 0;
-    const correctDirs = [];
+    const results = [];
 
     function showRound() {
       clearStage(); clearControls();
-      const dir = ['up','right','down','left'][Math.floor(Math.random()*4)];
-      correctDirs.push(dir);
+      const dir   = ['up','right','down','left'][Math.floor(Math.random()*4)];
       const angle = {up:270, right:0, down:90, left:180}[dir];
-      const size = cfg.sizes[Math.min(round, cfg.sizes.length-1)];
+      const size  = cfg.sizes[Math.min(round, cfg.sizes.length - 1)];
 
-      const e = el(`<div class="snellen-e" style="font-size:${size}px; transform:rotate(${angle}deg);">E</div>`);
-      stage.appendChild(e);
+      stage.appendChild(el(
+        `<div class="snellen-e" style="font-size:${size}px; transform:rotate(${angle}deg);">E</div>`
+      ));
 
       const grid = el(`
         <div class="arrow-grid">
@@ -173,17 +197,16 @@ const RENDERERS = {
           <button class="center" disabled></button>
           <button data-dir="down">↓</button>
           <button class="center" disabled></button>
-        </div>
-      `);
+        </div>`);
+
       grid.querySelectorAll('button[data-dir]').forEach(b => {
         b.onclick = () => {
           const picked = b.dataset.dir;
-          const correct = picked === dir;
-          correctDirs[round] = { direction: dir, picked, correct };
+          results.push({ direction: dir, picked, correct: picked === dir });
           round++;
           if (round >= cfg.rounds) {
-            const hits = correctDirs.filter(r => r.correct).length;
-            submitTask(`${hits}/${cfg.rounds}`, { rounds: correctDirs });
+            const hits = results.filter(r => r.correct).length;
+            submitTask(`${hits}/${cfg.rounds}`, { rounds: results });
           } else {
             showRound();
           }
@@ -194,7 +217,7 @@ const RENDERERS = {
     showRound();
   },
 
-  // ---- 2. Contrast Sensitivity ----
+  /* 2. Contrast Sensitivity */
   contrast() {
     const cfg = TASK.config;
     let idx = 0;
@@ -202,19 +225,20 @@ const RENDERERS = {
 
     function showLevel() {
       clearStage(); clearControls();
-      const c = cfg.levels[idx];
-      // gray value: 0=black, 1=white — start dark, get lighter (lower contrast)
+      const c    = cfg.levels[idx];
       const gray = Math.round(255 * (1 - c * 0.9));
-      const letter = el(`<div class="contrast-letter" style="font-size:180px; color:rgb(${gray},${gray},${gray});">${cfg.letter}</div>`);
-      stage.appendChild(letter);
+
+      stage.appendChild(el(
+        `<div class="contrast-letter" style="font-size:180px; color:rgb(${gray},${gray},${gray});">${cfg.letter}</div>`
+      ));
 
       const opts = el(`
         <div class="options two">
           <label><input type="radio" name="vis" value="Yes">YES</label>
           <label><input type="radio" name="vis" value="No">NO</label>
-        </div>
-      `);
+        </div>`);
       const btn = el(`<button class="btn">Next</button>`);
+
       btn.onclick = () => {
         const picked = opts.querySelector('input:checked');
         if (!picked) return;
@@ -222,11 +246,10 @@ const RENDERERS = {
         idx++;
         if (idx >= cfg.levels.length) {
           const yesCount = results.filter(r => r.answer === 'Yes').length;
-          const lastYes = results.filter(r => r.answer === 'Yes').pop();
-          submitTask(`${yesCount}/${results.length}`, { results, lowest_visible_contrast: lastYes ? lastYes.level : 0 });
-        } else {
-          showLevel();
-        }
+          const lastYes  = results.filter(r => r.answer === 'Yes').pop();
+          submitTask(`${yesCount}/${results.length}`,
+                     { results, lowest_visible_contrast: lastYes ? lastYes.level : 0 });
+        } else showLevel();
       };
       controls.appendChild(opts);
       controls.appendChild(btn);
@@ -234,27 +257,25 @@ const RENDERERS = {
     showLevel();
   },
 
-  // ---- 3. Ishihara color plate (canvas-generated dots) ----
+  /* 3. Ishihara */
   ishihara() {
     clearStage(); clearControls();
-    const size = 300;
+    const size   = 300;
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = size;
     canvas.style.borderRadius = '50%';
     stage.appendChild(canvas);
     const ctx = canvas.getContext('2d');
 
-    // background dots
-    const colors = ['#c0392b','#e67e22','#d35400','#a93226','#cb4335'];
+    const bgColors = ['#c0392b','#e67e22','#d35400','#a93226','#cb4335'];
     for (let i = 0; i < 700; i++) {
-      const x = Math.random() * size, y = Math.random() * size;
-      const r = 4 + Math.random() * 6;
-      if ((x-size/2)**2 + (y-size/2)**2 > (size/2-4)**2) continue;
-      ctx.fillStyle = colors[Math.floor(Math.random()*colors.length)];
+      const x = Math.random()*size, y = Math.random()*size;
+      const r = 4 + Math.random()*6;
+      if ((x - size/2)**2 + (y - size/2)**2 > (size/2 - 4)**2) continue;
+      ctx.fillStyle = bgColors[Math.floor(Math.random()*bgColors.length)];
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
     }
 
-    // foreground dots forming the number
     const off = document.createElement('canvas');
     off.width = off.height = size;
     const octx = off.getContext('2d');
@@ -263,31 +284,34 @@ const RENDERERS = {
     octx.textAlign = 'center';
     octx.textBaseline = 'middle';
     octx.fillText(TASK.config.number, size/2, size/2 + 10);
-    const data = octx.getImageData(0,0,size,size).data;
-    const fg = ['#27ae60','#2ecc71','#16a085','#1abc9c'];
+    const data = octx.getImageData(0, 0, size, size).data;
+
+    const fgColors = ['#27ae60','#2ecc71','#16a085','#1abc9c'];
     for (let i = 0; i < 2500; i++) {
-      const x = Math.random() * size, y = Math.random() * size;
-      if ((x-size/2)**2 + (y-size/2)**2 > (size/2-4)**2) continue;
+      const x = Math.random()*size, y = Math.random()*size;
+      if ((x - size/2)**2 + (y - size/2)**2 > (size/2 - 4)**2) continue;
       const px = (Math.floor(y)*size + Math.floor(x)) * 4;
-      if (data[px+3] > 128) {
-        ctx.fillStyle = fg[Math.floor(Math.random()*fg.length)];
+      if (data[px + 3] > 128) {
+        ctx.fillStyle = fgColors[Math.floor(Math.random()*fgColors.length)];
         ctx.beginPath(); ctx.arc(x, y, 4 + Math.random()*4, 0, Math.PI*2); ctx.fill();
       }
     }
 
     const input = el(`<input type="text" placeholder="Type the number you see" autofocus>`);
-    const btn = el(`<button class="btn">Submit</button>`);
+    const btn   = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => submitTask(input.value.trim(), { expected: TASK.config.number });
-    controls.appendChild(input); controls.appendChild(btn);
+    controls.appendChild(input);
+    controls.appendChild(btn);
   },
 
-  // ---- 4. Amsler grid ----
+  /* 4. Amsler Grid */
   amsler() {
     clearStage(); clearControls();
     const N = 12;
-    const wrap = el(`<div style="position:relative;">`);
+    const wrap = el(`<div style="position:relative;"></div>`);
     const grid = el(`<div class="amsler-grid" style="grid-template-columns:repeat(${N},1fr); grid-template-rows:repeat(${N},1fr);"></div>`);
     const marked = [];
+
     for (let r = 0; r < N; r++) {
       for (let c = 0; c < N; c++) {
         const cell = el(`<div class="amsler-cell"></div>`);
@@ -295,82 +319,77 @@ const RENDERERS = {
           cell.classList.toggle('marked');
           const key = `${r},${c}`;
           const i = marked.indexOf(key);
-          if (i >= 0) marked.splice(i,1); else marked.push(key);
+          if (i >= 0) marked.splice(i, 1); else marked.push(key);
         };
         grid.appendChild(cell);
       }
     }
-    const center = el(`<div class="amsler-center" style="left:calc(50% - 4px); top:calc(50% - 4px);"></div>`);
-    wrap.appendChild(grid); wrap.appendChild(center);
+    wrap.appendChild(grid);
+    wrap.appendChild(el(`<div class="amsler-center" style="left:calc(50% - 4px); top:calc(50% - 4px);"></div>`));
     stage.appendChild(wrap);
 
     const btn = el(`<button class="btn">Submit Amsler Result</button>`);
-    btn.onclick = () => submitTask(marked.length === 0 ? 'No distortion' : `${marked.length} areas marked`,
-                                   { marked_cells: marked });
+    btn.onclick = () => submitTask(
+      marked.length === 0 ? 'No distortion' : `${marked.length} areas marked`,
+      { marked_cells: marked }
+    );
     controls.appendChild(btn);
   },
 
-  // ---- 5. Visual Field (flashing dots) ----
+  /* 5. Visual Field */
   visual_field() {
     const cfg = TASK.config;
     let round = 0;
     const results = [];
     const positions = [];
-
-    // Pre-generate positions to avoid clustering
     for (let i = 0; i < cfg.rounds; i++) {
-      let angle = Math.random() * Math.PI * 2;
-      let radius = 60 + Math.random() * 130;
-      positions.push({ angle, radius });
+      positions.push({ angle: Math.random()*Math.PI*2, radius: 60 + Math.random()*130 });
     }
 
     function nextRound() {
       clearStage(); clearControls();
       setStageClass('dark');
-      // fixation cross
-      const cross = el(`<div style="position:absolute; font-size:28px; color:#00c9a7;">+</div>`);
-      stage.appendChild(cross);
+
+      stage.appendChild(el(`<div style="position:absolute; font-size:28px; color:#00c9a7;">+</div>`));
 
       const { angle, radius } = positions[round];
-      const cx = stage.clientWidth/2 + Math.cos(angle) * radius;
+      const cx = stage.clientWidth/2  + Math.cos(angle) * radius;
       const cy = stage.clientHeight/2 + Math.sin(angle) * radius;
       const dot = el(`<div style="position:absolute; left:${cx-8}px; top:${cy-8}px; width:16px; height:16px; background:#fff; border-radius:50%; opacity:0;"></div>`);
       stage.appendChild(dot);
 
-      // flash
       setTimeout(() => {
         dot.style.transition = 'opacity .15s';
         dot.style.opacity = '1';
         setTimeout(() => { dot.style.opacity = '0'; }, 400);
-      }, 500 + Math.random() * 800);
+      }, 500 + Math.random()*800);
 
-      // let participant tap anywhere
-      const tapHandler = (e) => {
+      const tapHandler = e => {
         const rect = stage.getBoundingClientRect();
         const tx = e.touches ? e.touches[0].clientX : e.clientX;
         const ty = e.touches ? e.touches[0].clientY : e.clientY;
         const x = tx - rect.left, y = ty - rect.top;
         const dx = x - stage.clientWidth/2, dy = y - stage.clientHeight/2;
-        const tappedAngle = Math.atan2(dy, dx);
+        const tappedAngle  = Math.atan2(dy, dx);
         const tappedRadius = Math.sqrt(dx*dx + dy*dy);
-        const angleDiff = Math.abs(Math.atan2(Math.sin(tappedAngle - angle), Math.cos(tappedAngle - angle)));
+        const angleDiff = Math.abs(Math.atan2(
+          Math.sin(tappedAngle - angle), Math.cos(tappedAngle - angle)
+        ));
         const hit = angleDiff < 0.5 && Math.abs(tappedRadius - radius) < 60;
-        results.push({ angle, radius, tapped: { x, y, angle: tappedAngle, radius: tappedRadius }, hit });
+        results.push({ angle, radius, hit });
         round++;
         stage.removeEventListener('click', tapHandler);
         if (round >= cfg.rounds) {
           const hits = results.filter(r => r.hit).length;
           submitTask(`${hits}/${cfg.rounds}`, { results });
-        } else {
-          setTimeout(nextRound, 300);
-        }
+        } else setTimeout(nextRound, 300);
       };
       stage.addEventListener('click', tapHandler);
     }
     nextRound();
   },
 
-  // ---- 6. Motion Detection ----
+  /* 6. Motion Detection */
   motion() {
     const cfg = TASK.config;
     let round = 0;
@@ -380,22 +399,22 @@ const RENDERERS = {
     function showRound() {
       clearStage(); clearControls();
       const dir = dirs[Math.floor(Math.random()*4)];
-      const dot = el(`<div style="position:absolute; width:22px; height:22px; background:#00c9a7; border-radius:50%; left:50%; top:50%; transform:translate(-50%,-50%); transition:transform 0.6s ease-out;"></div>`);
+      const dot = el(`<div style="position:absolute; width:22px; height:22px; background:#00c9a7; border-radius:50%; left:50%; top:50%; transform:translate(-50%,-50%); transition:transform .6s ease-out;"></div>`);
       stage.appendChild(dot);
 
       setTimeout(() => {
-        const d = 100;
+        const d  = 100;
         const dx = dir === 'left' ? -d : dir === 'right' ? d : 0;
-        const dy = dir === 'up' ? -d : dir === 'down' ? d : 0;
+        const dy = dir === 'up'   ? -d : dir === 'down'  ? d : 0;
         dot.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
       }, 300);
 
       const opts = el(`
         <div class="options two">
           ${dirs.map(d => `<label><input type="radio" name="dir" value="${d}">${d.toUpperCase()}</label>`).join('')}
-        </div>
-      `);
+        </div>`);
       const btn = el(`<button class="btn">Next</button>`);
+
       btn.onclick = () => {
         const picked = opts.querySelector('input:checked');
         if (!picked) return;
@@ -406,53 +425,56 @@ const RENDERERS = {
           submitTask(`${hits}/${cfg.rounds}`, { results });
         } else showRound();
       };
-      controls.appendChild(opts); controls.appendChild(btn);
+      controls.appendChild(opts);
+      controls.appendChild(btn);
     }
     showRound();
   },
 
-  // ---- 7. Reading Speed ----
+  /* 7. Reading Speed */
   reading() {
     clearStage(); clearControls();
     const text = TASK.config.text;
-    const display = el(`<div style="font-size:26px; line-height:1.5; padding:16px; text-align:center;">${text}</div>`);
-    stage.appendChild(display);
+    stage.appendChild(el(
+      `<div style="font-size:26px; line-height:1.5; padding:16px; text-align:center;">${text}</div>`
+    ));
 
     const timer = el(`<div class="timer-badge">0.0s</div>`);
     stage.appendChild(timer);
     const t0 = Date.now();
     const tick = setInterval(() => {
-      timer.textContent = ((Date.now()-t0)/1000).toFixed(1) + 's';
+      timer.textContent = ((Date.now() - t0)/1000).toFixed(1) + 's';
     }, 100);
 
     const input = el(`<input type="text" placeholder="Type the sentence exactly" autofocus>`);
-    const btn = el(`<button class="btn">Submit</button>`);
+    const btn   = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => {
       clearInterval(tick);
-      const time = Date.now() - t0;
-      submitTask(input.value, { expected: text, read_time_ms: time });
+      submitTask(input.value, { expected: text, read_time_ms: Date.now() - t0 });
     };
-    controls.appendChild(input); controls.appendChild(btn);
+    controls.appendChild(input);
+    controls.appendChild(btn);
   },
 
-  // ---- 8. Glare Sensitivity ----
+  /* 8. Glare Sensitivity */
   glare() {
     clearStage(); clearControls();
     setStageClass('dark');
-    const light = el(`<div class="glare-light"></div>`);
-    stage.appendChild(light);
+    stage.appendChild(el(`<div class="glare-light"></div>`));
 
     const slider = el(`<input type="range" min="0" max="10" value="5" style="width:100%;">`);
-    const val = el(`<div style="text-align:center; font-size:32px; font-weight:700; color:#00c9a7;">5</div>`);
-    slider.oninput = () => val.textContent = slider.value;
+    const val    = el(`<div style="text-align:center; font-size:32px; font-weight:700; color:#00c9a7;">5</div>`);
+    slider.oninput = () => { val.textContent = slider.value; };
 
     const btn = el(`<button class="btn">Submit Rating</button>`);
     btn.onclick = () => submitTask(slider.value, { discomfort: parseInt(slider.value) });
 
-    controls.appendChild(slider); controls.appendChild(val); controls.appendChild(btn);
+    controls.appendChild(slider);
+    controls.appendChild(val);
+    controls.appendChild(btn);
   },
 
-  // ---- 9. Face Recognition ----
+  /* 9. Face Recognition */
   face() {
     clearStage(); clearControls();
     const faces = {
@@ -464,18 +486,21 @@ const RENDERERS = {
     };
     stage.innerHTML = `<svg width="200" height="200" viewBox="0 0 200 200">${faces[TASK.config.emotion] || faces.neutral}</svg>`;
 
-    const opts = el(`<div class="options">${TASK.config.options.map(o =>
-      `<label><input type="radio" name="emo" value="${o}">${o}</label>`).join('')}</div>`);
+    const opts = el(`<div class="options">${
+      TASK.config.options.map(o =>
+        `<label><input type="radio" name="emo" value="${o}">${o}</label>`).join('')
+    }</div>`);
     const btn = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => {
       const p = opts.querySelector('input:checked');
       if (!p) return;
       submitTask(p.value, { expected: TASK.config.emotion });
     };
-    controls.appendChild(opts); controls.appendChild(btn);
+    controls.appendChild(opts);
+    controls.appendChild(btn);
   },
 
-  // ---- 10. Object Recognition ----
+  /* 10. Object Recognition */
   object() {
     clearStage(); clearControls();
     const shapes = {
@@ -486,18 +511,22 @@ const RENDERERS = {
       star:  `<polygon points="100,20 120,80 185,80 130,120 150,180 100,145 50,180 70,120 15,80 80,80" fill="#f5c542"/>`,
     };
     stage.innerHTML = `<svg width="200" height="200" viewBox="0 0 200 200">${shapes[TASK.config.shape] || shapes.star}</svg>`;
-    const opts = el(`<div class="options">${TASK.config.options.map(o =>
-      `<label><input type="radio" name="obj" value="${o}">${o}</label>`).join('')}</div>`);
+
+    const opts = el(`<div class="options">${
+      TASK.config.options.map(o =>
+        `<label><input type="radio" name="obj" value="${o}">${o}</label>`).join('')
+    }</div>`);
     const btn = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => {
       const p = opts.querySelector('input:checked');
       if (!p) return;
       submitTask(p.value, { expected: TASK.config.shape });
     };
-    controls.appendChild(opts); controls.appendChild(btn);
+    controls.appendChild(opts);
+    controls.appendChild(btn);
   },
 
-  // ---- 11. Depth Perception ----
+  /* 11. Depth Perception */
   depth() {
     clearStage(); clearControls();
     const closer = Math.random() < 0.5 ? 'Left' : 'Right';
@@ -505,28 +534,31 @@ const RENDERERS = {
     stage.innerHTML = `
       <div class="depth-visual">
         <div class="depth-circle" style="left:40px; background:${lBehind ? '#7eb8e0' : '#1e5a8a'};
-             box-shadow: 0 8px 20px rgba(0,0,0,${lBehind ? 0.15 : 0.4});"></div>
+             box-shadow:0 8px 20px rgba(0,0,0,${lBehind ? 0.15 : 0.4});"></div>
         <div class="depth-circle" style="right:40px; background:${lBehind ? '#1e5a8a' : '#7eb8e0'};
-             box-shadow: 0 8px 20px rgba(0,0,0,${lBehind ? 0.4 : 0.15});"></div>
+             box-shadow:0 8px 20px rgba(0,0,0,${lBehind ? 0.4 : 0.15});"></div>
       </div>`;
-    const opts = el(`<div class="options two">
-      ${TASK.config.options.map(o => `<label><input type="radio" name="d" value="${o}">${o}</label>`).join('')}
-    </div>`);
+
+    const opts = el(`<div class="options two">${
+      TASK.config.options.map(o =>
+        `<label><input type="radio" name="d" value="${o}">${o}</label>`).join('')
+    }</div>`);
     const btn = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => {
       const p = opts.querySelector('input:checked');
       if (!p) return;
       submitTask(p.value, { expected: closer, closer });
     };
-    controls.appendChild(opts); controls.appendChild(btn);
+    controls.appendChild(opts);
+    controls.appendChild(btn);
   },
 
-  // ---- 12. Text Tracking ----
+  /* 12. Text Tracking */
   tracking() {
     clearStage(); clearControls();
-    const words = ['vision','acuity','contrast','peripheral','macular','retina','optic','focus','retinal','glaucoma'];
+    const words  = ['vision','acuity','contrast','peripheral','macular','retina','optic','focus','retinal','glaucoma'];
     const target = words[Math.floor(Math.random()*words.length)];
-    const seq = Array(9).fill(null).map((_,i) => words[Math.floor(Math.random()*words.length)]);
+    const seq    = Array(9).fill(null).map(() => words[Math.floor(Math.random()*words.length)]);
     const targetIdx = 2 + Math.floor(Math.random()*5);
     seq[targetIdx] = target;
 
@@ -543,25 +575,28 @@ const RENDERERS = {
         display.textContent = 'Done — type the highlighted word';
         display.style.color = '#333';
         display.style.fontSize = '18px';
+
         const input = el(`<input type="text" placeholder="Type the highlighted word" autofocus>`);
-        const btn = el(`<button class="btn">Submit</button>`);
+        const btn   = el(`<button class="btn">Submit</button>`);
         btn.onclick = () => submitTask(input.value.trim().toLowerCase(), { expected: target });
-        controls.appendChild(input); controls.appendChild(btn);
+        controls.appendChild(input);
+        controls.appendChild(btn);
       }
     }, 900);
   },
 
-  // ---- 13. Sign Reading ----
+  /* 13. Sign Reading */
   sign() {
     clearStage(); clearControls();
     stage.innerHTML = `<div class="sign-visual">${TASK.config.text}</div>`;
     const input = el(`<input type="text" placeholder="Type the text on the sign" autofocus>`);
-    const btn = el(`<button class="btn">Submit</button>`);
+    const btn   = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => submitTask(input.value.trim(), { expected: TASK.config.text });
-    controls.appendChild(input); controls.appendChild(btn);
+    controls.appendChild(input);
+    controls.appendChild(btn);
   },
 
-  // ---- 14. Medication Label ----
+  /* 14. Medication Label */
   label() {
     clearStage(); clearControls();
     stage.innerHTML = `
@@ -571,18 +606,19 @@ const RENDERERS = {
         <div class="dose">Directions: Take one tablet every 6–8 hours as needed.</div>
       </div>`;
     const input = el(`<input type="text" placeholder="What dosage is on the label?" autofocus>`);
-    const btn = el(`<button class="btn">Submit</button>`);
+    const btn   = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => submitTask(input.value.trim(), { expected: '200 mg' });
-    controls.appendChild(input); controls.appendChild(btn);
+    controls.appendChild(input);
+    controls.appendChild(btn);
   },
 
-  // ---- 15. Obstacle Detection ----
+  /* 15. Obstacle Detection */
   obstacle() {
     clearStage(); clearControls();
     const hasObs = TASK.config.has_obstacle;
     const obs = hasObs
       ? `<rect x="120" y="140" width="60" height="40" fill="#7a3a1a"/>`
-      : `<rect x="120" y="140" width="60" height="40" fill="none"/>`;
+      : ``;
     stage.innerHTML = `<svg width="300" height="220" viewBox="0 0 300 220">
       <rect width="300" height="220" fill="#e8f0e8"/>
       <path d="M0 180 L300 180 L300 220 L0 220 Z" fill="#a0a0a0"/>
@@ -590,19 +626,22 @@ const RENDERERS = {
       ${obs}
       <circle cx="40" cy="170" r="12" fill="#333"/>
     </svg>`;
-    const opts = el(`<div class="options two">
-      ${TASK.config.options.map(o => `<label><input type="radio" name="o" value="${o}">${o}</label>`).join('')}
-    </div>`);
+
+    const opts = el(`<div class="options two">${
+      TASK.config.options.map(o =>
+        `<label><input type="radio" name="o" value="${o}">${o}</label>`).join('')
+    }</div>`);
     const btn = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => {
       const p = opts.querySelector('input:checked');
       if (!p) return;
       submitTask(p.value, { expected: hasObs ? 'Yes' : 'No', has_obstacle: hasObs });
     };
-    controls.appendChild(opts); controls.appendChild(btn);
+    controls.appendChild(opts);
+    controls.appendChild(btn);
   },
 
-  // ---- 16. Scene Description ----
+  /* 16. Scene Description */
   scene() {
     clearStage(); clearControls();
     stage.innerHTML = `<svg width="320" height="220" viewBox="0 0 320 220">
@@ -615,12 +654,13 @@ const RENDERERS = {
       <circle cx="175" cy="100" r="22" fill="#3a8a4a"/>
     </svg>`;
     const input = el(`<input type="text" placeholder="Describe what you see" autofocus>`);
-    const btn = el(`<button class="btn">Submit</button>`);
+    const btn   = el(`<button class="btn">Submit</button>`);
     btn.onclick = () => submitTask(input.value.trim(), { scene: 'house_tree_sun' });
-    controls.appendChild(input); controls.appendChild(btn);
+    controls.appendChild(input);
+    controls.appendChild(btn);
   },
 
-  // ---- 17. Peripheral Awareness ----
+  /* 17. Peripheral Awareness */
   peripheral() {
     const cfg = TASK.config;
     let round = 0;
@@ -629,16 +669,18 @@ const RENDERERS = {
     function next() {
       clearStage(); clearControls();
       setStageClass('dark');
-      // center fixation
-      const cross = el(`<div style="position:absolute; font-size:36px; color:#00c9a7;">+</div>`);
-      stage.appendChild(cross);
+      stage.appendChild(el(`<div style="position:absolute; font-size:36px; color:#00c9a7;">+</div>`));
 
       const dir = ['left','right'][Math.floor(Math.random()*2)];
-      const y = 60 + Math.random() * (stage.clientHeight - 120);
-      const x = dir === 'left' ? 30 : stage.clientWidth - 60;
+      const y   = 60 + Math.random() * (stage.clientHeight - 120);
+      const x   = dir === 'left' ? 30 : stage.clientWidth - 60;
       const shape = el(`<div style="position:absolute; left:${x}px; top:${y}px; width:28px; height:28px; background:#fff; opacity:0; transition:opacity .12s;"></div>`);
       stage.appendChild(shape);
-      setTimeout(() => { shape.style.opacity='1'; setTimeout(() => shape.style.opacity='0', 250); }, 500);
+
+      setTimeout(() => {
+        shape.style.opacity = '1';
+        setTimeout(() => { shape.style.opacity = '0'; }, 250);
+      }, 500);
 
       const opts = el(`<div class="options two">
         <label><input type="radio" name="p" value="Left">LEFT</label>
@@ -655,20 +697,21 @@ const RENDERERS = {
           submitTask(`${hits}/${cfg.rounds}`, { results });
         } else next();
       };
-      controls.appendChild(opts); controls.appendChild(btn);
+      controls.appendChild(opts);
+      controls.appendChild(btn);
     }
     next();
   },
 
-  // ---- 18. Daily Task Simulation ----
+  /* 18. Daily Task Simulation */
   daily() {
     clearStage(); clearControls();
     const bottles = [
-      { name: 'Aspirin', dose: '100 mg' },
-      { name: 'Ibuprofen', dose: '200 mg' },
+      { name: 'Aspirin',     dose: '100 mg' },
+      { name: 'Ibuprofen',   dose: '200 mg' },
       { name: 'Paracetamol', dose: '500 mg' },
-      { name: 'Aspirin', dose: '75 mg' },
-      { name: 'Aspirin', dose: '100 mg' },
+      { name: 'Aspirin',     dose: '75 mg'  },
+      { name: 'Aspirin',     dose: '100 mg' },
       { name: 'Amoxicillin', dose: '250 mg' },
     ].sort(() => Math.random() - 0.5);
 
@@ -687,21 +730,26 @@ const RENDERERS = {
       wrap.appendChild(b_el);
     });
     stage.appendChild(wrap);
-    const note = el(`<div style="font-size:12px; color:#8e8e93; text-align:center;">Tap the correct bottle to submit.</div>`);
-    controls.appendChild(note);
+    controls.appendChild(el(`<div style="font-size:12px; color:#8e8e93; text-align:center;">Tap the correct bottle to submit.</div>`));
   },
 };
 
-// ---------- dispatch ----------
+/* ---------- dispatch ---------- */
 const renderer = RENDERERS[TASK.type];
-if (renderer) renderer();
-else {
-  // fallback: plain text input
+if (renderer) {
+  renderer();
+} else {
   const input = el(`<input type="text" placeholder="Your response" autofocus>`);
-  const btn = el(`<button class="btn">Submit</button>`);
+  const btn   = el(`<button class="btn">Submit</button>`);
   btn.onclick = () => submitTask(input.value);
-  controls.appendChild(input); controls.appendChild(btn);
+  controls.appendChild(input);
+  controls.appendChild(btn);
 }
+
+/* ---------- always-visible Skip button ---------- */
+const skipBtn = el(`<button class="btn ghost" style="margin-top:10px;">Skip this task →</button>`);
+skipBtn.onclick = skipTask;
+controls.appendChild(skipBtn);
 </script>
 </body>
 </html>

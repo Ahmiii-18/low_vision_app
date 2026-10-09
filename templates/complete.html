@@ -15,8 +15,11 @@
            padding:16px; margin-bottom:20px; font-size:15px; color:#007a63; }
   table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:24px; }
   th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e5ea; vertical-align:top; }
-  th { background:#f2f2f7; font-weight:600; font-size:12px; text-transform:uppercase; color:#6c6c70; }
-  .ok { color:#00a88a; font-weight:600; } .no { color:#d64545; font-weight:600; }
+  th { background:#f2f2f7; font-weight:600; font-size:12px;
+       text-transform:uppercase; color:#6c6c70; }
+  .ok { color:#00a88a; font-weight:600; }
+  .no { color:#d64545; font-weight:600; }
+  .skip { color:#8e8e93; font-style:italic; }
   .actions { display:flex; gap:8px; flex-wrap:wrap; }
   .btn { padding:14px 20px; background:#000; color:#fff; text-decoration:none;
          border-radius:10px; font-size:15px; }
@@ -27,21 +30,31 @@
 <body>
 <div class="card">
   <h1>✅ Assessment Complete</h1>
-  <p class="sub">Participant {{ participant.participant_id }} · {{ responses|length }} tasks recorded</p>
+  <p class="sub">Participant {{ participant.participant_id }} ·
+     {{ responses|length }} tasks recorded</p>
 
   {% if scored_total > 0 %}
-  <div class="score"><strong>Score:</strong> {{ score }} / {{ scored_total }} scored correctly</div>
+  <div class="score">
+    <strong>Score:</strong> {{ score }} / {{ scored_total }} scored correctly
+  </div>
   {% endif %}
 
   <table>
-    <thead><tr><th>#</th><th>Task</th><th>Response</th><th>Result</th><th>Time</th></tr></thead>
+    <thead>
+      <tr><th>#</th><th>Task</th><th>Response</th><th>Result</th><th>Time</th></tr>
+    </thead>
     <tbody>
     {% for r in responses %}
       <tr>
         <td>{{ r.task_number }}</td>
         <td>{{ r.task_name }}</td>
         <td>{{ r.response or "—" }}</td>
-        <td>{% if r.correct is none %}—{% elif r.correct %}<span class="ok">Correct</span>{% else %}<span class="no">Incorrect</span>{% endif %}</td>
+        <td>
+          {% if r.skipped %}<span class="skip">Skipped</span>
+          {% elif r.correct is none %}—
+          {% elif r.correct %}<span class="ok">Correct</span>
+          {% else %}<span class="no">Incorrect</span>{% endif %}
+        </td>
         <td>{% if r.duration_ms %}{{ (r.duration_ms/1000)|round(1) }}s{% else %}—{% endif %}</td>
       </tr>
     {% endfor %}
@@ -49,8 +62,8 @@
   </table>
 
   <div class="actions">
-    <a href="/export/participant/{{ participant.id }}" class="btn green">📥 Export This Participant (CSV)</a>
-    <a href="/export" class="btn">📥 Export All Participants (CSV)</a>
+    <a href="/export/participant/{{ participant.id }}" class="btn green">📥 Export This Participant</a>
+    <a href="/export" class="btn">📥 Export All Participants</a>
     <a href="/export/wide" class="btn alt">📊 Wide Format CSV</a>
     <a href="/" class="btn alt">New Participant</a>
   </div>
