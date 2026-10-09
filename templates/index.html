@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Participant & Study Settings</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f2f2f7; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; }
+        .card { background-color: #ffffff; border-radius: 16px; padding: 24px; width: 100%; max-width: 500px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+        h1 { font-size: 24px; font-weight: 700; color: #000000; margin-bottom: 24px; }
+        label { display: block; font-size: 16px; font-weight: 500; color: #000000; margin-bottom: 8px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 12px 16px; font-size: 16px; border: 1px solid #d1d1d6; border-radius: 10px; background-color: #ffffff; color: #000000; margin-bottom: 20px; appearance: none; -webkit-appearance: none; }
+        input::placeholder { color: #c7c7cc; }
+        .select-wrapper { position: relative; margin-bottom: 20px; }
+        .select-wrapper select { margin-bottom: 0; padding-right: 40px; cursor: pointer; }
+        .select-wrapper::after { content: "⇅"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #000000; pointer-events: none; }
+        .info-box { background-color: #eef4ff; border-radius: 10px; padding: 16px; font-size: 14px; line-height: 1.4; color: #1c1c1e; margin-bottom: 24px; }
+        .btn-primary { display: block; width: 100%; padding: 16px; background-color: #000000; color: #ffffff; font-size: 16px; font-weight: 500; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 12px; }
+        .btn-primary:active { opacity: 0.8; }
+        .btn-secondary { display: block; width: 100%; padding: 16px; background-color: #ffffff; color: #007aff; font-size: 16px; font-weight: 500; border: 1px solid #007aff; border-radius: 10px; cursor: pointer; margin-bottom: 24px; text-align: center; text-decoration: none; }
+        .btn-secondary:active { background-color: #f0f8ff; }
+        .warning-box { background-color: #fff9e6; border-radius: 10px; padding: 16px; font-size: 14px; line-height: 1.4; color: #1c1c1e; }
+        .flash { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+        .flash.success { background-color: #d4edda; color: #155724; }
+        .flash.error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Participant & Study Settings</h1>
+
+        <!-- Flash messages from Python backend -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/">
+            <label for="participantId">Participant ID</label>
+            <input type="text" id="participantId" name="participantId" placeholder="e.g., LV001" required>
+
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" required>
+
+            <label for="device">Device</label>
+            <div class="select-wrapper">
+                <select id="device" name="device">
+                    <option value="Tablet">Tablet</option>
+                    <option value="Phone">Phone</option>
+                    <option value="Desktop">Desktop</option>
+                </select>
+            </div>
+
+            <label for="visionGroup">Eye/vision group</label>
+            <div class="select-wrapper">
+                <select id="visionGroup" name="visionGroup">
+                    <option value="Low vision">Low vision</option>
+                    <option value="Normal vision">Normal vision</option>
+                    <option value="Blind">Blind</option>
+                </select>
+            </div>
+
+            <div class="info-box">
+                <strong>Study setup:</strong> Keep device, viewing distance, room illumination, screen brightness and participant instructions standardized according to your approved protocol.
+            </div>
+
+            <button type="submit" class="btn-primary">Start 18-Task Assessment</button>
+        </form>
+
+        <a href="/export" class="btn-secondary">Export Data (CSV)</a>
+
+        <div class="warning-box">
+            This prototype is for research development only. Its tasks, thresholds and scores must be scientifically validated before clinical use.
+        </div>
+    </div>
+</body>
+</html>
